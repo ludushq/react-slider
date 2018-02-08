@@ -117,6 +117,11 @@
       handleActiveClassName: PropTypes.string,
 
       /**
+       * The css styles to apply on the handles at runtime.
+       */
+      handleStyles: PropTypes.arrayOf(PropTypes.object),
+
+      /**
        * If `true` bars between the handles will be rendered.
        */
       withBars: PropTypes.bool,
@@ -182,6 +187,7 @@
         className: 'slider',
         handleClassName: 'handle',
         handleActiveClassName: 'active',
+        handleStyles: null,
         barClassName: 'bar',
         withBars: false,
         pearling: false,
@@ -321,8 +327,16 @@
       var style = {
         position: 'absolute',
         willChange: this.state.index >= 0 ? this._posMinKey() : '',
-        zIndex: this.state.zIndices.indexOf(i) + 1
+        zIndex: this.state.zIndices.indexOf(i) + 1,
       };
+      if (this.props.handleStyles && this.props.handleStyles[i]) {
+        var object = this.props.handleStyles[i];
+        for (var property in object) {
+          if (object.hasOwnProperty(property)) {
+            style[property] = object[property];
+          }
+        }
+      }
       style[this._posMinKey()] = offset + 'px';
       return style;
     },
