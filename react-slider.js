@@ -437,6 +437,13 @@
       }.bind(this);
     },
 
+    // create the `click` handler for the i-th handle
+    _createOnClick: function (i) {
+      return function (e) {
+        pauseEvent(e);
+      }.bind(this);
+    },
+
     // create the `touchstart` handler for the i-th handle
     _createOnTouchStart: function (i) {
       return function (e) {
@@ -472,7 +479,7 @@
 
       this.hasMoved = false;
 
-      this._fireChangeEvent('onBeforeChange');
+      this._fireChangeEvent('onBeforeChange', i);
 
       var zIndices = this.state.zIndices;
       zIndices.splice(zIndices.indexOf(i), 1); // remove wherever the element is
@@ -500,7 +507,7 @@
 
     _onEnd: function (eventMap) {
       this._removeHandlers(eventMap);
-      this.setState({index: -1}, this._fireChangeEvent.bind(this, 'onAfterChange'));
+      this.setState({index: -1}, this._fireChangeEvent.bind(this, 'onAfterChange', this.state.index));
     },
 
     _onMouseMove: function (e) {
@@ -623,7 +630,7 @@
       // Normally you would use `shouldComponentUpdate`, but since the slider is a low-level component,
       // the extra complexity might be worth the extra performance.
       if (newValue !== oldValue) {
-        this.setState({value: value}, this._fireChangeEvent.bind(this, 'onChange'));
+        this.setState({value: value}, this._fireChangeEvent.bind(this, 'onChange', index));
       }
     },
 
@@ -732,6 +739,7 @@
             style: style,
             onMouseDown: this._createOnMouseDown(i),
             onTouchStart: this._createOnTouchStart(i),
+            onClick: this._createOnClick(i),
             onFocus: this._createOnKeyDown(i),
             tabIndex: 0,
             role: "slider",
@@ -798,7 +806,7 @@
       if (!this.props.snapDragDisabled) {
         var position = this._getMousePosition(e);
         this._forceValueFromPosition(position[0], function (i) {
-          this._fireChangeEvent('onChange');
+          this._fireChangeEvent('onChange', i);
           this._start(i, position[0]);
           this._addHandlers(this._getMouseEventMap());
         }.bind(this));
@@ -812,14 +820,16 @@
 
       if (this.props.onSliderClick && !this.hasMoved) {
         var position = this._getMousePosition(e);
-        var valueAtPos = this._trimAlignValue(this._calcValue(this._calcOffsetFromPosition(position[0])));
-        this.props.onSliderClick(valueAtPos);
+        var pixelOffset = this._calcOffsetFromPosition(position[0]);
+        var valueAtPos = this._trimAlignValue(this._calcValue(pixelOffset));
+        var closestIndex = this._getClosestIndex(pixelOffset);
+        this.props.onSliderClick(valueAtPos, closestIndex);
       }
     },
 
-    _fireChangeEvent: function (event) {
+    _fireChangeEvent: function (event, index) {
       if (this.props[event]) {
-        this.props[event](undoEnsureArray(this.state.value));
+        this.props[event](undoEnsureArray(this.state.value), index);
       }
     },
 
@@ -843,7 +853,7 @@
             style: {position: 'relative'},
             className: props.className + (props.disabled ? ' disabled' : ''),
             onMouseDown: this._onSliderMouseDown,
-            onClick: this._onSliderClick
+            onClick: this._onSliderClick,
           },
           bars,
           handles
