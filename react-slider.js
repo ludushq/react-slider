@@ -170,10 +170,16 @@
       onAfterChange: PropTypes.func,
 
       /**
-       *  Callback called when the the slider is clicked (handle or bars).
+       *  Callback called when the the slider is clicked.
        *  Receives the value at the clicked position as argument.
        */
-      onSliderClick: PropTypes.func
+      onSliderClick: PropTypes.func,
+
+      /**
+       *  Callback called when the the slider is double-clicked.
+       *  Receives the value at the clicked position as argument.
+       */
+      onSliderDoubleClick: PropTypes.func
     },
 
     getDefaultProps: function () {
@@ -453,6 +459,13 @@
 
     // create the `click` handler for the i-th handle
     _createOnClick: function (i) {
+      return function (e) {
+        pauseEvent(e);
+      }.bind(this);
+    },
+
+    // create the `dblclick` handler for the i-th handle
+    _createOnDoubleClick: function (i) {
       return function (e) {
         pauseEvent(e);
       }.bind(this);
@@ -754,6 +767,7 @@
             onMouseDown: this._createOnMouseDown(i),
             onTouchStart: this._createOnTouchStart(i),
             onClick: this._createOnClick(i),
+            onDoubleClick: this._createOnDoubleClick(i),
             onFocus: this._createOnKeyDown(i),
             tabIndex: 0,
             role: "slider",
@@ -841,6 +855,18 @@
       }
     },
 
+    _onSliderDoubleClick: function (e) {
+      if (this.props.disabled) return;
+
+      if (this.props.onSliderDoubleClick && !this.hasMoved) {
+        var position = this._getMousePosition(e);
+        var pixelOffset = this._calcOffsetFromPosition(position[0]);
+        var valueAtPos = this._trimAlignValue(this._calcValue(pixelOffset));
+        var closestIndex = this._getClosestIndex(pixelOffset);
+        this.props.onSliderDoubleClick(valueAtPos, closestIndex);
+      }
+    },
+
     _fireChangeEvent: function (event, index) {
       if (this.props[event]) {
         this.props[event](undoEnsureArray(this.state.value), index);
@@ -868,6 +894,7 @@
             className: props.className + (props.disabled ? ' disabled' : ''),
             onMouseDown: this._onSliderMouseDown,
             onClick: this._onSliderClick,
+            onDoubleClick: this._onSliderDoubleClick,
           },
           bars,
           handles
