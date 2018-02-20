@@ -170,16 +170,36 @@
       onAfterChange: PropTypes.func,
 
       /**
-       *  Callback called when the the slider is clicked.
+       *  Callback called when the slider is clicked.
        *  Receives the value at the clicked position as argument.
        */
       onSliderClick: PropTypes.func,
 
       /**
-       *  Callback called when the the slider is double-clicked.
+       *  Callback called when the slider is double-clicked.
        *  Receives the value at the clicked position as argument.
        */
-      onSliderDoubleClick: PropTypes.func
+      onSliderDoubleClick: PropTypes.func,
+
+      /**
+       *  Callback called when the mouse goes over the slider.
+       */
+      onSliderMouseEnter: PropTypes.func,
+
+      /**
+       *  Callback called when the mouse goes out of the slider.
+       */
+      onSliderMouseLeave: PropTypes.func,
+
+      /**
+       *  Callback called when the mouse goes over a handle.
+       */
+      onHandleMouseEnter: PropTypes.func,
+
+      /**
+       *  Callback called when the mouse goes out of a handle.
+       */
+      onHandleMouseLeave: PropTypes.func
     },
 
     getDefaultProps: function () {
@@ -454,6 +474,26 @@
         this._start(i, position[0]);
         this._addHandlers(this._getMouseEventMap());
         pauseEvent(e);
+      }.bind(this);
+    },
+
+    // create the `mouseenter` handler for the i-th handle
+    _createOnMouseEnter: function (i) {
+      return function (e) {
+        if (this.props.disabled) return;
+        if (this.props.onHandleMouseEnter) {
+          this.props.onHandleMouseEnter(i);
+        }
+      }.bind(this);
+    },
+
+    // create the `mouseleave` handler for the i-th handle
+    _createOnMouseLeave: function (i) {
+      return function (e) {
+        if (this.props.disabled) return;
+        if (this.props.onHandleMouseLeave) {
+          this.props.onHandleMouseLeave(i);
+        }
       }.bind(this);
     },
 
@@ -765,6 +805,8 @@
             className: className,
             style: style,
             onMouseDown: this._createOnMouseDown(i),
+            onMouseEnter: this._createOnMouseEnter(i),
+            onMouseLeave: this._createOnMouseLeave(i),
             onTouchStart: this._createOnTouchStart(i),
             onClick: this._createOnClick(i),
             onDoubleClick: this._createOnDoubleClick(i),
@@ -843,6 +885,20 @@
       pauseEvent(e);
     },
 
+    _onSliderMouseEnter: function (e) {
+      if (this.props.disabled) return;
+      if (this.props.onSliderMouseEnter) {
+        this.props.onSliderMouseEnter();
+      }
+    },
+
+    _onSliderMouseLeave: function (e) {
+      if (this.props.disabled) return;
+      if (this.props.onSliderMouseLeave) {
+        this.props.onSliderMouseLeave();
+      }
+    },
+
     _onSliderClick: function (e) {
       if (this.props.disabled) return;
 
@@ -894,6 +950,8 @@
             className: props.className + (props.disabled ? ' disabled' : ''),
             onMouseDown: this._onSliderMouseDown,
             onClick: this._onSliderClick,
+            onMouseEnter: this._onSliderMouseEnter,
+            onMouseLeave: this._onSliderMouseLeave,
             onDoubleClick: this._onSliderDoubleClick,
           },
           bars,
