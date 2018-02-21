@@ -286,6 +286,7 @@
 
     componentDidMount: function () {
       window.addEventListener('resize', this._handleResize);
+      this._doHandleResize();
       this._handleResize();
     },
 
@@ -303,25 +304,28 @@
       var resizeTimeout = window.setTimeout(function() {
         // drop this timeout from pendingResizeTimeouts to reduce memory usage
         this.pendingResizeTimeouts.shift();
-
-        var slider = this.refs.slider;
-        var handle = this.refs.handle0;
-        var rect = slider.getBoundingClientRect();
-
-        var size = this._sizeKey();
-
-        var sliderMax = rect[this._posMaxKey()];
-        var sliderMin = rect[this._posMinKey()];
-
-        this.setState({
-          upperBound: slider[size] - handle[size],
-          sliderLength: Math.abs(sliderMax - sliderMin),
-          handleSize: handle[size],
-          sliderStart: this.props.invert ? sliderMax : sliderMin
-        });
+        this._doHandleResize();
       }.bind(this), 0);
 
       this.pendingResizeTimeouts.push(resizeTimeout);
+    },
+
+    _doHandleResize: function () {
+      var slider = this.refs.slider;
+      var handle = this.refs.handle0;
+      var rect = slider.getBoundingClientRect();
+
+      var size = this._sizeKey();
+
+      var sliderMax = rect[this._posMaxKey()];
+      var sliderMin = rect[this._posMinKey()];
+
+      this.setState({
+        upperBound: slider[size] - handle[size],
+        sliderLength: Math.abs(sliderMax - sliderMin),
+        handleSize: handle[size],
+        sliderStart: this.props.invert ? sliderMax : sliderMin
+      });
     },
 
     // clear all pending timeouts to avoid error messages after unmounting
@@ -950,9 +954,9 @@
             className: props.className + (props.disabled ? ' disabled' : ''),
             onMouseDown: this._onSliderMouseDown,
             onClick: this._onSliderClick,
+            onDoubleClick: this._onSliderDoubleClick,
             onMouseEnter: this._onSliderMouseEnter,
             onMouseLeave: this._onSliderMouseLeave,
-            onDoubleClick: this._onSliderDoubleClick,
           },
           bars,
           handles
